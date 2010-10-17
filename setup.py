@@ -21,4 +21,5 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
     zip_safe=False,
+    entry_points = {'zc.buildout': ['default = shaunsephton.recipe.uwsgi:UWSGI']},
 )
