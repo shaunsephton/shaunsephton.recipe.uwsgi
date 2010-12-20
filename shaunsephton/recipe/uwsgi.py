@@ -58,9 +58,9 @@ class UWSGI:
         paths = [dist.location for dist in ws]
 
         # Build uWSGI with Buildout Python paths.
-        uwsgiconfig = __import__('uwsgiconfig')
-        uwsgiconfig.PYLIB_PATH = ','.join(paths)
-        uwsgiconfig.parse_vars()
+        #uwsgiconfig = __import__('uwsgiconfig')
+        #uwsgiconfig.PYLIB_PATH = ','.join(paths)
+        #uwsgiconfig.parse_vars()
         uwsgiconfig.build_uwsgi('uwsgi')
 
         # Change back to original path and remove uwsgi_path from Python path if added.

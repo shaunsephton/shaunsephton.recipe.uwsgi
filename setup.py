@@ -20,6 +20,9 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
+    install_requires = [
+        'zc.recipe.egg',
+    ],
     zip_safe=False,
     entry_points = {'zc.buildout': ['default = shaunsephton.recipe.uwsgi:UWSGI']},
 )
