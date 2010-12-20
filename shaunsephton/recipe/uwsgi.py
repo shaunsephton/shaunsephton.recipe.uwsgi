@@ -16,6 +16,24 @@ class UWSGI:
         self.name = name
         self.buildout = buildout
         options['download-cache'] = self.buildout['buildout']['download-cache']
+
+        # Collect configuration params from options.
+        self.conf = {}
+
+        # socket: path (or name) of UNIX/TCP socket to bind to
+        self.conf['socket'] = options['socket']
+
+        # harakiri: set harakiri timeout to <sec> seconds
+        self.conf['harakiri'] = options.get('harakiri', None)
+        # master: enable master process manager
+        self.conf['master'] = options.get('master', None)
+        # max-requests: maximum number of requests for each worker
+        self.conf['max-requests'] = options.get('max-requests', None)
+        # module: name of python config module
+        self.conf['module'] = options.get('module', None)
+        # processes: spawn <n> uwsgi worker processes
+        self.conf['processes'] = options.get('processes', None)
+        
         self.options = options
 
     def download_release(self):
@@ -53,14 +71,9 @@ class UWSGI:
             sys.path.append(uwsgi_path)
             sys_path_changed = True
 
-        # Get Buildout Python paths.
-        requirements, ws = self.egg.working_set(['djangorecipe'])
-        paths = [dist.location for dist in ws]
-
-        # Build uWSGI with Buildout Python paths.
-        #uwsgiconfig = __import__('uwsgiconfig')
-        #uwsgiconfig.PYLIB_PATH = ','.join(paths)
-        #uwsgiconfig.parse_vars()
+        # Build uWSGI.
+        uwsgiconfig = __import__('uwsgiconfig')
+        uwsgiconfig.parse_vars()
         uwsgiconfig.build_uwsgi('uwsgi')
 
         # Change back to original path and remove uwsgi_path from Python path if added.
@@ -78,7 +91,33 @@ class UWSGI:
         shutil.copy(uwsgi_executable_path, bin_path)
         uwsgi_path = os.path.join(self.buildout['buildout']['bin-directory'])
         return os.path.join(bin_path, os.path.split(uwsgi_executable_path)[-1])
+       
+    def create_conf_xml(self):
+        path = os.path.join(self.buildout['buildout']['directory'], 'uwsgi')
+        try:
+            os.mkdir(path)
+        except OSError:
+            pass
         
+        xml_path = os.path.join(path, 'conf.xml')
+        
+        conf = ""
+        for key, value in self.conf.items():
+            if value == 'True':
+                conf += "<%s/>\n" % key
+            elif value and value != 'False':
+                conf += "<%s>%s</%s>\n" % (key, value, key)
+                
+                
+        requirements, ws = self.egg.working_set()
+        paths = [dist.location for dist in ws]
+        for path in paths:
+            conf += "<pythonpath>%s</pythonpath>\n" % path
+        
+        f = open(xml_path, 'w')
+        f.write("<uwsgi>\n%s</uwsgi>" % conf)
+        f.close()
+
     def install(self):
         # Download uWSGI.
         download_path = self.download_release()
@@ -91,6 +130,9 @@ class UWSGI:
 
         # Copy uWSGI to bin.
         uwsgi_bin_path = self.copy_uwsgi_to_bin(uwsgi_executable_path)
+        
+        # Create uWSGI conf xml.
+        self.create_conf_xml()
 
         # Remove extracted uWSGI package.
         shutil.rmtree(extract_path)
