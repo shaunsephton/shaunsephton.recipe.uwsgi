@@ -4,6 +4,7 @@ import shutil
 import sys
 import tempfile
 from zc.buildout.download import Download
+import zc
 import zc.recipe.egg
 
 class UWSGI:
@@ -15,7 +16,11 @@ class UWSGI:
         self.egg = zc.recipe.egg.Egg(buildout, options['recipe'], options)
         self.name = name
         self.buildout = buildout
-        options['download-cache'] = self.buildout['buildout']['download-cache']
+        
+        if 'extra-paths' in options:
+            options['pythonpath'] = options['extra-paths']
+        else:
+            options.setdefault('extra-paths', options.get('pythonpath', ''))
 
         # Collect configuration params from options.
         self.conf = {}
@@ -40,8 +45,6 @@ class UWSGI:
         """
         Download uWSGI release based on 'version' option and return path to downloaded file.
         """
-        #cache = self.options['download-cache']
-        #download = Download(cache=cache)
         download = Download(self.buildout['buildout'])
         download_path, is_temp = download('http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
         return download_path
@@ -92,7 +95,46 @@ class UWSGI:
         uwsgi_path = os.path.join(self.buildout['buildout']['bin-directory'])
         return os.path.join(bin_path, os.path.split(uwsgi_executable_path)[-1])
        
+    def get_extra_paths(self):
+        """
+        Returns extra paths to include for uWSGI.
+        TODO: Figure out a more buildouty way to do this.
+        """
+        parts_path = self.buildout['buildout']['parts-directory']
+        parts_paths = [os.path.join(parts_path, part) for part in os.listdir(parts_path)]
+        extra_paths = [self.buildout['buildout']['directory'],] + parts_paths
+
+        # Add libraries found by a site .pth files to our extra-paths.
+        if 'pth-files' in self.options:
+            import site
+            for pth_file in self.options['pth-files'].splitlines():
+                pth_libs = site.addsitedir(pth_file, set())
+                if not pth_libs:
+                    self.log.warning(
+                        "No site *.pth libraries found for pth_file=%s" % (
+                         pth_file,))
+                else:
+                    self.log.info("Adding *.pth libraries=%s" % pth_libs)
+                    self.options['extra-paths'] += '\n' + '\n'.join(pth_libs)
+
+        # Add local extra-paths.
+        pythonpath = [p.replace('/', os.path.sep) for p in
+                      self.options['extra-paths'].splitlines() if p.strip()]
+
+        extra_paths.extend(pythonpath)
+        
+        # Add global extra-paths
+        pythonpath = [p.replace('/', os.path.sep) for p in
+                      self.buildout['buildout']['extra-paths'].splitlines() if p.strip()]
+
+        extra_paths.extend(pythonpath)
+
+        return extra_paths
+    
     def create_conf_xml(self):
+        """
+        Create xml file file with which to run uwsgi.
+        """
         path = os.path.join(self.buildout['buildout']['directory'], 'uwsgi')
         try:
             os.mkdir(path)
@@ -110,7 +152,7 @@ class UWSGI:
                 
                 
         requirements, ws = self.egg.working_set()
-        paths = [dist.location for dist in ws]
+        paths = zc.buildout.easy_install._get_path(ws, self.get_extra_paths())
         for path in paths:
             conf += "<pythonpath>%s</pythonpath>\n" % path
         
