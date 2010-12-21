@@ -124,10 +124,10 @@ class UWSGI:
         extra_paths.extend(pythonpath)
         
         # Add global extra-paths
-        pythonpath = [p.replace('/', os.path.sep) for p in
-                      self.buildout['buildout']['extra-paths'].splitlines() if p.strip()]
-
-        extra_paths.extend(pythonpath)
+        buildout_extra_paths = self.buildout['buildout'].get('extra-paths', None)
+        if buildout_extra_paths:
+            pythonpath = [p.replace('/', os.path.sep) for p in buildout_extra_paths.splitlines() if p.strip()]
+            extra_paths.extend(pythonpath)
 
         return extra_paths
     
