@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='shaunsephton.recipe.uwsgi',
     version='0.0.1',
-    description='Buildout recipe downloading, compiling and configuring Python paths for uWSGI.',
+    description='Buildout recipe downloading, compiling and configuring uWSGI.',
     long_description = open('README.rst', 'r').read(),
     author='Shaun Sephton',
     author_email='shaunsephton@gmail.com',
