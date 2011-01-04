@@ -141,8 +141,8 @@ class UWSGI:
             os.mkdir(path)
         except OSError:
             pass
-        
-        xml_path = os.path.join(path, 'conf.xml')
+       
+        xml_path = os.path.join(path, '%s.xml' % self.name)
         
         conf = ""
         for key, value in self.conf.items():
@@ -162,25 +162,26 @@ class UWSGI:
         f.close()
 
     def install(self):
-        # Download uWSGI.
-        download_path = self.download_release()
+        if not os.path.exists(os.path.join(self.buildout['buildout']['bin-directory'], 'uwsgi')):
+            # Download uWSGI.
+            download_path = self.download_release()
 
-        #Extract uWSGI.
-        uwsgi_path, extract_path = self.extract_release(download_path)
+            #Extract uWSGI.
+            uwsgi_path, extract_path = self.extract_release(download_path)
         
-        # Build uWSGI.
-        uwsgi_executable_path = self.build_uwsgi(uwsgi_path)
+            # Build uWSGI.
+            uwsgi_executable_path = self.build_uwsgi(uwsgi_path)
 
-        # Copy uWSGI to bin.
-        uwsgi_bin_path = self.copy_uwsgi_to_bin(uwsgi_executable_path)
-        
+            # Copy uWSGI to bin.
+            uwsgi_bin_path = self.copy_uwsgi_to_bin(uwsgi_executable_path)
+            
+            # Remove extracted uWSGI package.
+            shutil.rmtree(extract_path)
+
         # Create uWSGI conf xml.
         self.create_conf_xml()
 
-        # Remove extracted uWSGI package.
-        shutil.rmtree(extract_path)
-
-        return [uwsgi_bin_path,]
+        return []
 
     def update(self):
         return
