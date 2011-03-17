@@ -77,8 +77,17 @@ class UWSGI:
 
         # Build uWSGI.
         uwsgiconfig = __import__('uwsgiconfig')
-        uwsgiconfig.parse_vars()
-        uwsgiconfig.build_uwsgi('uwsgi')
+        uwsgiconfig = __import__('uwsgiconfig')
+        bconf = 'default.ini'
+        try:
+            bconf = sys.argv[2]
+            if not bconf.endswith('.ini'):
+                bconf += '.ini'
+        except:
+            pass
+        if not '/' in bconf:
+            bconf = 'buildconf/%s' % bconf
+        uwsgiconfig.build_uwsgi(uwsgiconfig.uConf(bconf))
 
         # Change back to original path and remove uwsgi_path from Python path if added.
         os.chdir(current_path)
