@@ -38,6 +38,10 @@ class UWSGI:
         self.conf['module'] = options.get('module', None)
         # processes: spawn <n> uwsgi worker processes
         self.conf['processes'] = options.get('processes', None)
+        # reload-on-as: recycle workers when its address space usage is over the limit specified 
+        self.conf['reload-on-as'] = options.get('reload-on-as', None)
+        # reload-on-rss: Works as reload-on-as but it control the physical unshared memory. You can enable both. 
+        self.conf['reload-on-rss'] = options.get('reload-on-rss', None)
         
         self.options = options
 
