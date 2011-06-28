@@ -32,6 +32,8 @@ class UWSGI:
         self.conf['harakiri'] = options.get('harakiri', None)
         # master: enable master process manager
         self.conf['master'] = options.get('master', None)
+        # vacuum: automatically remove unix socket and pidfiles on server exit 
+        self.conf['vacuum'] = options.get('vacuum', None)
         # max-requests: maximum number of requests for each worker
         self.conf['max-requests'] = options.get('max-requests', None)
         # module: name of python config module
