@@ -26,7 +26,10 @@ class UWSGI:
         self.conf = {}
 
         # socket: path (or name) of UNIX/TCP socket to bind to
-        self.conf['socket'] = options['socket']
+        # uwsgi requires a socket to be specified, but we may choose to
+        # specify it elsewhere (.ini file, commandline)
+        # so it's not required here
+        self.conf['socket'] = options.get('socket', None)
 
         # harakiri: set harakiri timeout to <sec> seconds
         self.conf['harakiri'] = options.get('harakiri', None)
