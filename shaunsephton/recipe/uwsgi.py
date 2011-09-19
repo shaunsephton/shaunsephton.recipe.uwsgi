@@ -142,7 +142,7 @@ class UWSGI:
         """
         Create xml file file with which to run uwsgi.
         """
-        path = os.path.join(self.buildout['buildout']['directory'], 'uwsgi')
+        path = os.path.join(self.buildout['buildout']['parts-directory'], 'uwsgi')
         try:
             os.mkdir(path)
         except OSError:
