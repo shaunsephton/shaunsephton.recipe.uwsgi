@@ -87,14 +87,16 @@ class UWSGI:
         # Build uWSGI.
         uwsgiconfig = __import__('uwsgiconfig')
         bconf = '%s/buildconf/default.ini' % uwsgi_path
-        uwsgiconfig.build_uwsgi(uwsgiconfig.uConf(bconf))
+        uconf = uwsgiconfig.uConf(bconf)
+        uconf.set('bin_name', self.name)
+        uwsgiconfig.build_uwsgi(uconf)
 
         # Change back to original path and remove uwsgi_path from Python path if added.
         os.chdir(current_path)
         if sys_path_changed:
             sys.path.remove(uwsgi_path)
 
-        return os.path.join(uwsgi_path, 'uwsgi')
+        return os.path.join(uwsgi_path, self.name)
 
     def copy_uwsgi_to_bin(self, uwsgi_executable_path):
         """
@@ -145,13 +147,13 @@ class UWSGI:
         """
         Create xml file file with which to run uwsgi.
         """
-        path = os.path.join(self.buildout['buildout']['parts-directory'], 'uwsgi')
+        path = os.path.join(self.buildout['buildout']['parts-directory'], self.name)
         try:
             os.mkdir(path)
         except OSError:
             pass
 
-        xml_path = os.path.join(path, '%s.xml' % self.name)
+        xml_path = os.path.join(path, 'uwsgi.xml')
 
         conf = ""
         for key, value in self.conf.items():
@@ -169,9 +171,11 @@ class UWSGI:
         f = open(xml_path, 'w')
         f.write("<uwsgi>\n%s</uwsgi>" % conf)
         f.close()
+        return xml_path
 
     def install(self):
-        if not os.path.exists(os.path.join(self.buildout['buildout']['bin-directory'], 'uwsgi')):
+        paths = []
+        if not os.path.exists(os.path.join(self.buildout['buildout']['bin-directory'], self.name)):
             # Download uWSGI.
             download_path = self.download_release()
 
@@ -182,16 +186,16 @@ class UWSGI:
             uwsgi_executable_path = self.build_uwsgi(uwsgi_path)
 
             # Copy uWSGI to bin.
-            uwsgi_bin_path = self.copy_uwsgi_to_bin(uwsgi_executable_path)
+            paths.append(self.copy_uwsgi_to_bin(uwsgi_executable_path))
 
             # Remove extracted uWSGI package.
             shutil.rmtree(extract_path)
 
         # Create uWSGI conf xml.
-        self.create_conf_xml()
-
-        return []
-
+        paths.append(self.create_conf_xml())
+        
+        return paths
+    
     def update(self):
         # Create uWSGI conf xml - the egg set might have changed even if
         # the uwsgi section is unchanged so it's safer to re-generate the xml
