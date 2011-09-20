@@ -1,7 +1,7 @@
 shaunsephton.recipe.uwsgi
 =========================
     
-**Buildout recipe downloading, compiling and configuring uWSGI.**
+**Buildout recipe downloading, compiling and configuring uWSGI_.**
 
 Creates a ``bin/`` uWSGI_ executable and ``parts`` XML configuration file with which you can easily launch Buildout sandboxed uWSGI_ processes.
 
