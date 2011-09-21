@@ -24,30 +24,14 @@ class UWSGI:
 
         # Collect configuration params from options.
         self.conf = {}
-
-        # socket: path (or name) of UNIX/TCP socket to bind to
-        # uwsgi requires a socket to be specified, but we may choose to
-        # specify it elsewhere (.ini file, commandline)
-        # so it's not required here
-        self.conf['socket'] = options.get('socket', None)
-
-        # harakiri: set harakiri timeout to <sec> seconds
-        self.conf['harakiri'] = options.get('harakiri', None)
-        # master: enable master process manager
-        self.conf['master'] = options.get('master', None)
-        # vacuum: automatically remove unix socket and pidfiles on server exit
-        self.conf['vacuum'] = options.get('vacuum', None)
-        # max-requests: maximum number of requests for each worker
-        self.conf['max-requests'] = options.get('max-requests', None)
-        # module: name of python config module
-        self.conf['module'] = options.get('module', None)
-        # processes: spawn <n> uwsgi worker processes
-        self.conf['processes'] = options.get('processes', None)
-        # reload-on-as: recycle workers when its address space usage is over the limit specified
-        self.conf['reload-on-as'] = options.get('reload-on-as', None)
-        # reload-on-rss: Works as reload-on-as but it control the physical unshared memory. You can enable both.
-        self.conf['reload-on-rss'] = options.get('reload-on-rss', None)
-
+        for key in options:
+            # XXX: Excludes buildout fluff. This code sucks, there must be a better way.
+            if key in ('bin-directory', 'develop-eggs-directory', 'eggs', 'eggs-directory', 'executable', 'extra-paths', 'python', 'recipe'):
+                continue
+            elif key.startswith('_'):
+                continue
+            self.conf[key] = options.get(key, None)
+            
         self.options = options
 
     def download_release(self):
@@ -157,9 +141,9 @@ class UWSGI:
 
         conf = ""
         for key, value in self.conf.items():
-            if value == 'True':
+            if value.lower() == 'true':
                 conf += "<%s/>\n" % key
-            elif value and value != 'False':
+            elif value and value.lower() != 'false':
                 conf += "<%s>%s</%s>\n" % (key, value, key)
 
 
