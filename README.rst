@@ -24,4 +24,25 @@ This allows you to start a uWSGI_ process configured by the generated XML config
 
 The generated XML configuration includes ``pythonpath`` directives referencing the various Python eggs installed by Buildout and thus uWSGI_ can correctly utilize them.
 
+You can specify any and all additional uWSGI_ configuration options as additional options of the Buildout part. For instance to specify a socket and enable the master process add ``socket`` and ``master`` options to the buildout part, i.e.::
+
+    [buildout]
+    parts=uwsgi
+
+    [uwsgi]
+    recipe=shaunsephton.recipe.uwsgi
+    socket=127.0.0.1:7001
+    master=True
+
+
+You can also provided a set of eggs explicitly using the ``eggs`` option, i.e.::
+
+    [buildout]
+    parts=uwsgi
+
+    [uwsgi]
+    recipe=shaunsephton.recipe.uwsgi
+    eggs=my_uwsgi_package
+
 .. _uWSGI: http://projects.unbit.it/uwsgi/wiki/Doc
+
