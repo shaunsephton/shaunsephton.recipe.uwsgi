@@ -5,6 +5,9 @@ shaunsephton.recipe.uwsgi
 
 Creates a ``bin/`` uWSGI_ executable and ``parts`` XML configuration file with which you can easily launch Buildout sandboxed uWSGI_ processes.
 
+.. contents:: Contents
+    :depth: 5
+
 Usage
 -----
 
